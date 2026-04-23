@@ -32,13 +32,14 @@ import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
 
 type UserRow = {
-  id: string;
-  email?: string | null;
+  user_id: string;
   kullanici_adi?: string | null;
   puan?: number | null;
   rutbe?: string | null;
-  olusturulma_tarihi?: string | null;
-  son_giris_tarihi?: string | null;
+  kayit_tarihi?: string | null;
+  updated_at?: string | null;
+  tahmin_dogru?: number | null;
+  tahmin_yanlis?: number | null;
 };
 
 const RUTBE_OPTIONS = [
@@ -48,6 +49,7 @@ const RUTBE_OPTIONS = [
   { value: "Silver", label: "Silver" },
   { value: "Gold", label: "Gold" },
   { value: "Platinum", label: "Platinum" },
+  { value: "Pro", label: "Pro" },
   { value: "Legend", label: "Legend" },
 ];
 
@@ -79,7 +81,7 @@ export function UsersTable({ initialRows }: { initialRows: UserRow[] }) {
         >
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Email veya kullanici adi ara..."
+            placeholder="Kullanici adi ara..."
             value={q}
             onChange={(e) => setQ(e.target.value)}
             className="pl-9"
@@ -113,12 +115,12 @@ export function UsersTable({ initialRows }: { initialRows: UserRow[] }) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Email</TableHead>
               <TableHead>Kullanici</TableHead>
               <TableHead className="text-right">Puan</TableHead>
               <TableHead>Rutbe</TableHead>
+              <TableHead className="text-right">Dogru/Yanlis</TableHead>
               <TableHead>Kayit</TableHead>
-              <TableHead>Son Giris</TableHead>
+              <TableHead>Guncellendi</TableHead>
               <TableHead className="w-[50px]" />
             </TableRow>
           </TableHeader>
@@ -131,17 +133,14 @@ export function UsersTable({ initialRows }: { initialRows: UserRow[] }) {
               </TableRow>
             ) : (
               initialRows.map((u) => (
-                <TableRow key={u.id}>
+                <TableRow key={u.user_id}>
                   <TableCell className="font-medium">
                     <Link
-                      href={`/users/${u.id}`}
+                      href={`/users/${u.user_id}`}
                       className="hover:underline"
                     >
-                      {u.email ?? "-"}
+                      {u.kullanici_adi ?? u.user_id.slice(0, 8)}
                     </Link>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {u.kullanici_adi ?? "-"}
                   </TableCell>
                   <TableCell className="text-right font-mono">
                     {u.puan ?? 0}
@@ -153,17 +152,22 @@ export function UsersTable({ initialRows }: { initialRows: UserRow[] }) {
                       <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
+                  <TableCell className="text-right font-mono text-xs">
+                    <span className="text-emerald-500">{u.tahmin_dogru ?? 0}</span>
+                    {" / "}
+                    <span className="text-rose-500">{u.tahmin_yanlis ?? 0}</span>
+                  </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {u.olusturulma_tarihi
-                      ? formatDistanceToNow(new Date(u.olusturulma_tarihi), {
+                    {u.kayit_tarihi
+                      ? formatDistanceToNow(new Date(u.kayit_tarihi), {
                           addSuffix: true,
                           locale: tr,
                         })
                       : "-"}
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {u.son_giris_tarihi
-                      ? formatDistanceToNow(new Date(u.son_giris_tarihi), {
+                    {u.updated_at
+                      ? formatDistanceToNow(new Date(u.updated_at), {
                           addSuffix: true,
                           locale: tr,
                         })
@@ -178,10 +182,10 @@ export function UsersTable({ initialRows }: { initialRows: UserRow[] }) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/users/${u.id}`}>Profil goruntule</Link>
+                          <Link href={`/users/${u.user_id}`}>Profil goruntule</Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem asChild>
-                          <Link href={`/users/${u.id}?edit=puan`}>
+                          <Link href={`/users/${u.user_id}?edit=puan`}>
                             Puan duzenle
                           </Link>
                         </DropdownMenuItem>

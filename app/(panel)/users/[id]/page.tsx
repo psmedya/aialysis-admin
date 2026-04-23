@@ -19,16 +19,16 @@ export default async function UserDetailPage({
   const { data: user } = await supabase
     .from("profiller")
     .select("*")
-    .eq("id", id)
+    .eq("user_id", id)
     .maybeSingle();
 
   if (!user) notFound();
 
   const { data: predictions } = await supabase
     .from("tahmin_sonuclari")
-    .select("id, mac_id, tahmin_turu, oran, sonuc, olusturulma_tarihi")
-    .eq("kullanici_id", id)
-    .order("olusturulma_tarihi", { ascending: false })
+    .select("id, mac_id, kategori, cizgi, ust_alt, tahmin, oran, sonuc, kaynak, created_at")
+    .eq("user_id", id)
+    .order("created_at", { ascending: false })
     .limit(20);
 
   return (
@@ -41,9 +41,11 @@ export default async function UserDetailPage({
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            {user.kullanici_adi ?? user.email ?? "Kullanici"}
+            {user.kullanici_adi ?? "Kullanici"}
           </h1>
-          <p className="text-muted-foreground text-sm font-mono">{user.id}</p>
+          <p className="text-muted-foreground text-sm font-mono">
+            {user.user_id as string}
+          </p>
         </div>
       </div>
 
@@ -53,10 +55,6 @@ export default async function UserDetailPage({
             <CardTitle className="text-sm font-medium">Profil</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Email</span>
-              <span className="font-mono">{user.email ?? "-"}</span>
-            </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Kullanici Adi</span>
               <span>{user.kullanici_adi ?? "-"}</span>
@@ -74,18 +72,43 @@ export default async function UserDetailPage({
               )}
             </div>
             <div className="flex justify-between">
+              <span className="text-muted-foreground">Dogru / Yanlis</span>
+              <span className="font-mono text-xs">
+                <span className="text-emerald-500">
+                  {(user.tahmin_dogru as number | null) ?? 0}
+                </span>
+                {" / "}
+                <span className="text-rose-500">
+                  {(user.tahmin_yanlis as number | null) ?? 0}
+                </span>
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Streak</span>
+              <span className="font-mono">
+                {(user.streak as number | null) ?? 0} (max{" "}
+                {(user.max_streak as number | null) ?? 0})
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Takipci</span>
+              <span className="font-mono">
+                {(user.takipci_sayisi as number | null) ?? 0}
+              </span>
+            </div>
+            <div className="flex justify-between">
               <span className="text-muted-foreground">Kayit</span>
               <span>
-                {user.olusturulma_tarihi
-                  ? new Date(user.olusturulma_tarihi).toLocaleString("tr-TR")
+                {user.kayit_tarihi
+                  ? new Date(user.kayit_tarihi as string).toLocaleString("tr-TR")
                   : "-"}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Son Giris</span>
+              <span className="text-muted-foreground">Guncellendi</span>
               <span>
-                {user.son_giris_tarihi
-                  ? new Date(user.son_giris_tarihi).toLocaleString("tr-TR")
+                {user.updated_at
+                  ? new Date(user.updated_at as string).toLocaleString("tr-TR")
                   : "-"}
               </span>
             </div>
@@ -98,9 +121,9 @@ export default async function UserDetailPage({
           </CardHeader>
           <CardContent>
             <UserEditForm
-              id={user.id as string}
+              userId={user.user_id as string}
               initial={{
-                kullanici_adi: user.kullanici_adi ?? "",
+                kullanici_adi: (user.kullanici_adi as string | null) ?? "",
                 puan: (user.puan as number | null) ?? 0,
                 rutbe: (user.rutbe as string | null) ?? "",
               }}
@@ -129,11 +152,20 @@ export default async function UserDetailPage({
                     <span className="font-mono text-xs text-muted-foreground">
                       #{(p.mac_id as string | number) ?? "?"}
                     </span>{" "}
-                    <span>{p.tahmin_turu as string}</span>
+                    <span>
+                      {(p.kategori as string) ?? "-"}
+                      {p.cizgi != null && ` ${p.cizgi}`}
+                      {p.ust_alt && ` ${p.ust_alt}`}
+                    </span>
                     {p.oran != null && (
                       <span className="ml-2 text-xs text-muted-foreground">
                         {(p.oran as number).toFixed(2)}
                       </span>
+                    )}
+                    {p.kaynak && (
+                      <Badge variant="outline" className="ml-2 text-[10px]">
+                        {p.kaynak as string}
+                      </Badge>
                     )}
                   </div>
                   <Badge

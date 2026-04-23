@@ -15,10 +15,10 @@ type Initial = {
 };
 
 export function UserEditForm({
-  id,
+  userId,
   initial,
 }: {
-  id: string;
+  userId: string;
   initial: Initial;
 }) {
   const [form, setForm] = useState<Initial>(initial);
@@ -34,8 +34,9 @@ export function UserEditForm({
           kullanici_adi: form.kullanici_adi || null,
           puan: Number(form.puan) || 0,
           rutbe: form.rutbe || null,
+          updated_at: new Date().toISOString(),
         })
-        .eq("id", id);
+        .eq("user_id", userId);
       if (error) throw error;
       toast.success("Kullanici guncellendi");
     } catch (err) {
@@ -74,7 +75,7 @@ export function UserEditForm({
           onChange={(e) =>
             setForm((f) => ({ ...f, rutbe: e.target.value }))
           }
-          placeholder="Rookie/Bronze/..."
+          placeholder="Rookie/Pro/Legend..."
         />
       </div>
       <div className="sm:col-span-3 flex justify-end">

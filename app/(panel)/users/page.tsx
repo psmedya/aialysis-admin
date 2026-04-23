@@ -14,16 +14,14 @@ export default async function UsersPage({
   let query = supabase
     .from("profiller")
     .select(
-      "id, email, kullanici_adi, puan, rutbe, olusturulma_tarihi, son_giris_tarihi",
+      "user_id, kullanici_adi, puan, rutbe, kayit_tarihi, updated_at, tahmin_dogru, tahmin_yanlis",
       { count: "exact" },
     )
-    .order("olusturulma_tarihi", { ascending: false })
+    .order("kayit_tarihi", { ascending: false })
     .limit(100);
 
   if (params.q) {
-    query = query.or(
-      `email.ilike.%${params.q}%,kullanici_adi.ilike.%${params.q}%`,
-    );
+    query = query.ilike("kullanici_adi", `%${params.q}%`);
   }
   if (params.rutbe) {
     query = query.eq("rutbe", params.rutbe);
