@@ -1,4 +1,3 @@
-import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CronsList } from "./_crons-list";
 
@@ -21,25 +20,12 @@ const KNOWN_CRONS = [
 ];
 
 export default async function CronsPage() {
-  const supabase = await createClient();
-  const { data: health } = await supabase
-    .from("cron_health")
-    .select("*")
-    .limit(200);
-
-  // merge known crons with health data
-  const byName = new Map<string, Record<string, unknown>>();
-  for (const row of health ?? []) {
-    const name =
-      (row.jobname as string | undefined) ??
-      (row.name as string | undefined) ??
-      "";
-    if (name) byName.set(name, row);
-  }
-
+  // cron_health tablosu public semada yok — health verisi bos
+  // Cron job listesini pg_cron'dan almak icin RPC/SECURITY DEFINER gerekli.
+  // Simdilik bilinen cron listesini sergiler ve manuel tetikleme saglar.
   const merged = KNOWN_CRONS.map((c) => ({
     ...c,
-    health: byName.get(c.jobname) ?? null,
+    health: null as Record<string, unknown> | null,
   }));
 
   return (
@@ -50,10 +36,14 @@ export default async function CronsPage() {
           Zamanlanmis gorevleri izle ve manuel tetikle
         </p>
       </div>
+      <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-200">
+        Not: cron_health tablosu bulunmadigindan son calisma bilgileri
+        gosterilmiyor. Tetikleme calisir.
+      </div>
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium">
-            {merged.length} aktif cron
+            {merged.length} bilinen cron
           </CardTitle>
         </CardHeader>
         <CardContent>

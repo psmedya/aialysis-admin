@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -29,6 +30,7 @@ const otpSchema = z.object({
 type Step = "email" | "otp";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -77,7 +79,8 @@ export default function LoginPage() {
       });
       if (error) throw error;
       toast.success("Giris basarili");
-      window.location.href = "/";
+      router.replace("/");
+      router.refresh();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Bilinmeyen hata";
       setError(msg);

@@ -16,10 +16,10 @@ export const dynamic = "force-dynamic";
 
 export default async function BlogPage() {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("blog_yazilari")
-    .select("id, baslik, slug, yayinlandi, olusturulma_tarihi")
-    .order("olusturulma_tarihi", { ascending: false })
+  const { data, error } = await supabase
+    .from("blog_yazilar")
+    .select("id, baslik, slug, yayinda, created_at, goruntulenme")
+    .order("created_at", { ascending: false })
     .limit(50);
 
   return (
@@ -35,6 +35,9 @@ export default async function BlogPage() {
           </Link>
         </Button>
       </div>
+      {error && (
+        <div className="text-sm text-destructive">Hata: {error.message}</div>
+      )}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -42,13 +45,17 @@ export default async function BlogPage() {
               <TableHead>Baslik</TableHead>
               <TableHead>Slug</TableHead>
               <TableHead>Durum</TableHead>
+              <TableHead className="text-right">Goruntulenme</TableHead>
               <TableHead>Tarih</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {!data || data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={5}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   Yazi yok
                 </TableCell>
               </TableRow>
@@ -62,15 +69,16 @@ export default async function BlogPage() {
                     {(p.slug as string) ?? "-"}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={p.yayinlandi ? "secondary" : "outline"}>
-                      {p.yayinlandi ? "Yayinda" : "Taslak"}
+                    <Badge variant={p.yayinda ? "secondary" : "outline"}>
+                      {p.yayinda ? "Yayinda" : "Taslak"}
                     </Badge>
                   </TableCell>
+                  <TableCell className="text-right font-mono text-xs">
+                    {(p.goruntulenme as number | null) ?? 0}
+                  </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {p.olusturulma_tarihi
-                      ? new Date(
-                          p.olusturulma_tarihi as string,
-                        ).toLocaleString("tr-TR")
+                    {p.created_at
+                      ? new Date(p.created_at as string).toLocaleString("tr-TR")
                       : "-"}
                   </TableCell>
                 </TableRow>

@@ -26,11 +26,12 @@ async function fetchStats() {
 
   const counts = await Promise.allSettled([
     supabase.from("profiller").select("*", { count: "exact", head: true }),
+    // DAU: son 24 saatte guncellenen profiller (updated_at proxy)
     supabase
       .from("profiller")
       .select("*", { count: "exact", head: true })
       .gte(
-        "son_giris_tarihi",
+        "updated_at",
         new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
       ),
     supabase.from("tahmin_sonuclari").select("*", { count: "exact", head: true }),
@@ -41,7 +42,7 @@ async function fetchStats() {
     supabase
       .from("maclar")
       .select("*", { count: "exact", head: true })
-      .eq("durum", "LIVE"),
+      .in("durum", ["1H", "2H", "HT", "ET", "BT", "P", "LIVE"]),
   ]);
 
   const val = (i: number) =>
@@ -72,12 +73,18 @@ async function fetchStats() {
 }
 
 async function fetchCronHealth() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("cron_health")
-    .select("*")
-    .limit(20);
-  return data ?? [];
+  // cron_health tablosu public semada yok — sessizce bos dondur
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("cron_health")
+      .select("*")
+      .limit(20);
+    if (error) return [];
+    return data ?? [];
+  } catch {
+    return [];
+  }
 }
 
 async function fetchTrend() {
@@ -86,8 +93,8 @@ async function fetchTrend() {
   since.setDate(since.getDate() - 30);
   const { data } = await supabase
     .from("tahmin_sonuclari")
-    .select("olusturulma_tarihi, sonuc")
-    .gte("olusturulma_tarihi", since.toISOString())
+    .select("created_at, sonuc")
+    .gte("created_at", since.toISOString())
     .limit(5000);
 
   const byDay = new Map<
@@ -95,7 +102,7 @@ async function fetchTrend() {
     { date: string; total: number; dogru: number }
   >();
   for (const row of data ?? []) {
-    const d = new Date(row.olusturulma_tarihi as string);
+    const d = new Date(row.created_at as string);
     const key = d.toISOString().slice(0, 10);
     const entry = byDay.get(key) ?? { date: key, total: 0, dogru: 0 };
     entry.total += 1;

@@ -25,30 +25,34 @@ import { Loader2, Search } from "lucide-react";
 import { format } from "date-fns";
 
 type MatchRow = {
-  id: string | number;
-  ev_sahibi?: string | null;
-  deplasman?: string | null;
-  lig?: string | null;
+  fixture_id: string | number;
+  ev_takim_adi?: string | null;
+  dep_takim_adi?: string | null;
+  lig_adi?: string | null;
   durum?: string | null;
-  tarih?: string | null;
-  ev_skor?: number | null;
-  dep_skor?: number | null;
+  mac_tarihi?: string | null;
+  ev_gol?: number | null;
+  dep_gol?: number | null;
 };
 
 const DURUM_OPTIONS = [
   { value: "all", label: "Tum durumlar" },
   { value: "NS", label: "Baslamadi (NS)" },
-  { value: "LIVE", label: "Canli" },
+  { value: "1H", label: "Ilk yari" },
+  { value: "HT", label: "Devre arasi" },
+  { value: "2H", label: "Ikinci yari" },
+  { value: "ET", label: "Uzatma" },
   { value: "FT", label: "Bitti (FT)" },
-  { value: "HT", label: "Devre Arasi" },
   { value: "PST", label: "Ertelendi" },
   { value: "CANC", label: "Iptal" },
 ];
 
+const LIVE_DURUMLAR = new Set(["1H", "2H", "HT", "ET", "BT", "P", "LIVE"]);
+
 function durumColor(d?: string | null) {
-  if (d === "LIVE") return "destructive";
-  if (d === "FT") return "secondary";
-  if (d === "NS") return "outline";
+  if (!d) return "outline" as const;
+  if (LIVE_DURUMLAR.has(d)) return "destructive" as const;
+  if (d === "FT") return "secondary" as const;
   return "outline" as const;
 }
 
@@ -129,17 +133,17 @@ export function MatchesTable({ rows }: { rows: MatchRow[] }) {
               </TableRow>
             ) : (
               rows.map((m) => (
-                <TableRow key={String(m.id)}>
+                <TableRow key={String(m.fixture_id)}>
                   <TableCell className="font-medium">
-                    <Link href={`/matches/${m.id}`} className="hover:underline">
-                      {m.ev_sahibi ?? "-"} vs {m.deplasman ?? "-"}
+                    <Link href={`/matches/${m.fixture_id}`} className="hover:underline">
+                      {m.ev_takim_adi ?? "-"} vs {m.dep_takim_adi ?? "-"}
                     </Link>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
-                    {m.lig ?? "-"}
+                    {m.lig_adi ?? "-"}
                   </TableCell>
                   <TableCell className="font-mono">
-                    {m.ev_skor ?? "-"} : {m.dep_skor ?? "-"}
+                    {m.ev_gol ?? "-"} : {m.dep_gol ?? "-"}
                   </TableCell>
                   <TableCell>
                     <Badge variant={durumColor(m.durum)}>
@@ -147,13 +151,13 @@ export function MatchesTable({ rows }: { rows: MatchRow[] }) {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
-                    {m.tarih
-                      ? format(new Date(m.tarih), "dd.MM.yyyy HH:mm")
+                    {m.mac_tarihi
+                      ? format(new Date(m.mac_tarihi), "dd.MM.yyyy HH:mm")
                       : "-"}
                   </TableCell>
                   <TableCell>
                     <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/matches/${m.id}`}>Detay</Link>
+                      <Link href={`/matches/${m.fixture_id}`}>Detay</Link>
                     </Button>
                   </TableCell>
                 </TableRow>

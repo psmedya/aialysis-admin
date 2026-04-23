@@ -34,6 +34,8 @@ import { tr } from "date-fns/locale";
 type PRow = {
   id: string | number;
   mac_id?: string | number | null;
+  ev_sahibi?: string | null;
+  deplasman?: string | null;
   tahmin_turu?: string | null;
   oran?: number | null;
   sonuc?: string | null;
@@ -160,7 +162,13 @@ export function PredictionsTable({ rows: initial }: { rows: PRow[] }) {
               rows.map((p) => (
                 <TableRow key={String(p.id)} data-busy={busy === String(p.id)}>
                   <TableCell className="font-mono text-xs">
-                    #{String(p.mac_id ?? "-")}
+                    {p.ev_sahibi && p.deplasman ? (
+                      <span className="font-sans">
+                        {p.ev_sahibi} vs {p.deplasman}
+                      </span>
+                    ) : (
+                      <>#{String(p.mac_id ?? "-")}</>
+                    )}
                   </TableCell>
                   <TableCell>{p.tahmin_turu ?? "-"}</TableCell>
                   <TableCell className="text-right font-mono">

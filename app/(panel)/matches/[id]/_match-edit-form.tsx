@@ -42,10 +42,10 @@ export function MatchEditForm({
         .from("maclar")
         .update({
           durum: form.durum || null,
-          ev_skor: form.ev_skor,
-          dep_skor: form.dep_skor,
+          ev_gol: form.ev_skor,
+          dep_gol: form.dep_skor,
         })
-        .eq("id", id);
+        .eq("fixture_id", Number(id));
       if (error) throw error;
       toast.success("Mac guncellendi");
     } catch (err) {

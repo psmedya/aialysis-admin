@@ -14,19 +14,19 @@ export default async function MatchesPage({
   let query = supabase
     .from("maclar")
     .select(
-      "id, ev_sahibi, deplasman, lig, durum, tarih, ev_skor, dep_skor",
+      "fixture_id, ev_takim_adi, dep_takim_adi, lig_adi, durum, mac_tarihi, ev_gol, dep_gol",
       { count: "exact" },
     )
-    .order("tarih", { ascending: false })
+    .order("mac_tarihi", { ascending: false })
     .limit(100);
 
   if (params.q) {
     query = query.or(
-      `ev_sahibi.ilike.%${params.q}%,deplasman.ilike.%${params.q}%`,
+      `ev_takim_adi.ilike.%${params.q}%,dep_takim_adi.ilike.%${params.q}%`,
     );
   }
   if (params.durum) query = query.eq("durum", params.durum);
-  if (params.lig) query = query.eq("lig", params.lig);
+  if (params.lig) query = query.eq("lig_adi", params.lig);
 
   const { data, count, error } = await query;
 

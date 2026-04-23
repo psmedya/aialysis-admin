@@ -12,19 +12,21 @@ export default async function AnalyticsPage() {
   const d7 = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const d30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
+  // Not: profiller tablosunda son_giris_tarihi kolonu yok.
+  // Aktivite proxy'si olarak updated_at kullaniliyor (profil degistikce guncellenir).
   const results = await Promise.allSettled([
     supabase
       .from("profiller")
       .select("*", { count: "exact", head: true })
-      .gte("son_giris_tarihi", d1),
+      .gte("updated_at", d1),
     supabase
       .from("profiller")
       .select("*", { count: "exact", head: true })
-      .gte("son_giris_tarihi", d7),
+      .gte("updated_at", d7),
     supabase
       .from("profiller")
       .select("*", { count: "exact", head: true })
-      .gte("son_giris_tarihi", d30),
+      .gte("updated_at", d30),
     supabase.from("profiller").select("*", { count: "exact", head: true }),
   ]);
 
@@ -44,7 +46,8 @@ export default async function AnalyticsPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
         <p className="text-muted-foreground">
-          Kullanici aktivitesi ve basari metrikleri
+          Kullanici aktivitesi ve basari metrikleri (aktivite = profil
+          updated_at proxy)
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

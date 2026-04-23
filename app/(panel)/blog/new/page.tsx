@@ -31,7 +31,8 @@ export default function NewBlogPage() {
     baslik: "",
     slug: "",
     icerik: "",
-    yayinlandi: false,
+    ozet: "",
+    yayinda: false,
   });
   const [saving, setSaving] = useState(false);
 
@@ -43,11 +44,12 @@ export default function NewBlogPage() {
     setSaving(true);
     try {
       const supabase = createClient();
-      const { error } = await supabase.from("blog_yazilari").insert({
+      const { error } = await supabase.from("blog_yazilar").insert({
         baslik: form.baslik,
         slug: form.slug || slugify(form.baslik),
         icerik: form.icerik,
-        yayinlandi: form.yayinlandi,
+        ozet: form.ozet || null,
+        yayinda: form.yayinda,
       });
       if (error) throw error;
       toast.success("Yazi olusturuldu");
@@ -94,6 +96,16 @@ export default function NewBlogPage() {
             />
           </div>
           <div className="space-y-2">
+            <Label>Ozet</Label>
+            <Textarea
+              value={form.ozet}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, ozet: e.target.value }))
+              }
+              rows={3}
+            />
+          </div>
+          <div className="space-y-2">
             <Label>Icerik (Markdown)</Label>
             <Textarea
               value={form.icerik}
@@ -106,10 +118,8 @@ export default function NewBlogPage() {
           </div>
           <div className="flex items-center gap-2">
             <Switch
-              checked={form.yayinlandi}
-              onCheckedChange={(v) =>
-                setForm((f) => ({ ...f, yayinlandi: v }))
-              }
+              checked={form.yayinda}
+              onCheckedChange={(v) => setForm((f) => ({ ...f, yayinda: v }))}
             />
             <Label>Yayinla</Label>
           </div>

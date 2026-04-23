@@ -15,20 +15,23 @@ export default async function MatchDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const fixtureId = Number(id);
+  if (!Number.isFinite(fixtureId)) notFound();
+
   const supabase = await createClient();
   const { data: match } = await supabase
     .from("maclar")
     .select("*")
-    .eq("id", id)
+    .eq("fixture_id", fixtureId)
     .maybeSingle();
 
   if (!match) notFound();
 
   const { data: predictions } = await supabase
     .from("tahmin_sonuclari")
-    .select("id, tahmin_turu, oran, sonuc, kaynak, olusturulma_tarihi")
-    .eq("mac_id", id)
-    .order("olusturulma_tarihi", { ascending: false })
+    .select("id, tahmin, kategori, oran, sonuc, kaynak, created_at")
+    .eq("mac_id", fixtureId)
+    .order("created_at", { ascending: false })
     .limit(30);
 
   return (
@@ -41,10 +44,13 @@ export default async function MatchDetailPage({
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            {match.ev_sahibi as string} vs {match.deplasman as string}
+            {match.ev_takim_adi as string} vs {match.dep_takim_adi as string}
           </h1>
           <p className="text-muted-foreground text-sm">
-            {match.lig as string} · {match.tarih ? new Date(match.tarih as string).toLocaleString("tr-TR") : "-"}
+            {match.lig_adi as string} ·{" "}
+            {match.mac_tarihi
+              ? new Date(match.mac_tarihi as string).toLocaleString("tr-TR")
+              : "-"}
           </p>
         </div>
       </div>
@@ -56,19 +62,31 @@ export default async function MatchDetailPage({
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">ID</span>
-              <span className="font-mono">{String(match.id)}</span>
+              <span className="text-muted-foreground">Fixture ID</span>
+              <span className="font-mono">{String(match.fixture_id)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Skor</span>
               <span className="font-mono">
-                {(match.ev_skor as number | null) ?? "-"} :{" "}
-                {(match.dep_skor as number | null) ?? "-"}
+                {(match.ev_gol as number | null) ?? "-"} :{" "}
+                {(match.dep_gol as number | null) ?? "-"}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Durum</span>
               <Badge>{(match.durum as string) ?? "-"}</Badge>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Elapsed</span>
+              <span className="font-mono">
+                {(match.elapsed as number | null) ?? "-"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Stadyum</span>
+              <span className="text-xs">
+                {(match.stadyum as string) ?? "-"}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -79,11 +97,11 @@ export default async function MatchDetailPage({
           </CardHeader>
           <CardContent>
             <MatchEditForm
-              id={String(match.id)}
+              id={String(match.fixture_id)}
               initial={{
                 durum: (match.durum as string) ?? "",
-                ev_skor: (match.ev_skor as number | null) ?? null,
-                dep_skor: (match.dep_skor as number | null) ?? null,
+                ev_skor: (match.ev_gol as number | null) ?? null,
+                dep_skor: (match.dep_gol as number | null) ?? null,
               }}
             />
           </CardContent>
@@ -105,7 +123,9 @@ export default async function MatchDetailPage({
                   className="flex items-center justify-between text-sm border-b pb-2 last:border-0"
                 >
                   <div>
-                    <span>{p.tahmin_turu as string}</span>
+                    <span>
+                      {(p.tahmin as string) ?? (p.kategori as string) ?? "-"}
+                    </span>
                     {p.oran != null && (
                       <span className="ml-2 text-xs text-muted-foreground">
                         {(p.oran as number).toFixed(2)}
