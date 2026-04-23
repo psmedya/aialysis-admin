@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AIALYSIS Admin Panel
 
-## Getting Started
+Production-ready yonetim paneli. Stack:
 
-First, run the development server:
+- Next.js 16 (App Router, Turbopack default)
+- TypeScript 5
+- Tailwind CSS v4 + shadcn/ui (Radix)
+- Supabase SSR auth (`@supabase/ssr`)
+- TanStack Query v5
+- React Hook Form + Zod
+- Recharts, lucide-react, date-fns, sonner, next-themes
+
+## Calistirma
 
 ```bash
+npm install
+cp .env.example .env.local   # degerleri doldur
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Tarayicida: http://localhost:3000 → `/login` (sadece admin_emails tablosundaki email ile).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## ENV
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Key                            | Aciklama                                             |
+| ------------------------------ | ---------------------------------------------------- |
+| NEXT_PUBLIC_SUPABASE_URL       | Supabase proje URL                                   |
+| NEXT_PUBLIC_SUPABASE_ANON_KEY  | Anon key (tarayici tarafi)                           |
+| SUPABASE_SERVICE_ROLE_KEY      | Service role — server route'larda (opsiyonel)       |
 
-## Learn More
+## Admin whitelisting
 
-To learn more about Next.js, take a look at the following resources:
+Supabase'de `admin_emails` tablosu:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```sql
+create table if not exists public.admin_emails (
+  email text primary key,
+  created_at timestamptz default now()
+);
+insert into admin_emails (email) values ('portomarketin@gmail.com') on conflict do nothing;
+-- RLS: anon kullanicinin kendi email'ini dogrulamasina izin ver
+alter table public.admin_emails enable row level security;
+create policy "self check" on public.admin_emails
+  for select using (auth.jwt() ->> 'email' = email);
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploy (Vercel)
 
-## Deploy on Vercel
+```bash
+cd /Users/nn/aialysis-admin
+git init && git add -A && git commit -m "init admin panel"
+# GitHub repo yarat, push
+vercel
+# veya dashboard uzerinden proje ekle
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Vercel environment variables:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY
+- SUPABASE_SERVICE_ROLE_KEY
+
+Opsiyonel custom domain: `admin.aialysis.live` (CNAME → cname.vercel-dns.com).
+
+## Yapi
+
+```
+app/
+  (auth)/login           → Supabase OTP login
+  (panel)/
+    layout.tsx           → Sidebar + topbar + admin guard
+    page.tsx             → Dashboard
+    config/              → Remote Config editor
+    users/[id]           → Kullanici listesi + detay
+    matches/[id]         → Mac yonetimi + override
+    predictions/         → Tahmin listesi, sonuc override, sil
+    crons/               → Cron monitor + manuel tetikle
+    functions/           → Edge Function playground
+    forum/reports        → Forum + raporlar (iskelet)
+    blog/new             → Blog yazi olustur (iskelet)
+    analytics/           → DAU/WAU/MAU (iskelet)
+    settings/            → Bakim modu, flags, kill switch
+  api/
+    trigger-function     → Edge function proxy
+  denied                 → Yetkisiz erisim
+proxy.ts                 → Auth middleware (Next 16)
+lib/supabase/            → client/server/admin/middleware helpers
+components/              → app-sidebar, stats-card, providers
+```
