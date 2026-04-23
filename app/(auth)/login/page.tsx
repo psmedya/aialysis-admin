@@ -23,7 +23,7 @@ const emailSchema = z.object({
   email: z.string().email("Gecerli email gir"),
 });
 const otpSchema = z.object({
-  token: z.string().min(6, "6 haneli kod gir").max(6),
+  token: z.string().min(6, "6-8 haneli kod gir").max(8),
 });
 
 type Step = "email" | "otp";
@@ -55,7 +55,7 @@ export default function LoginPage() {
       if (error) throw error;
       setEmail(values.email);
       setStep("otp");
-      toast.success("6 haneli kod email adresine gonderildi");
+      toast.success("Kod email adresine gonderildi");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Bilinmeyen hata";
       setError(msg);
@@ -98,7 +98,7 @@ export default function LoginPage() {
           <CardDescription>
             {step === "email"
               ? "Yonetici hesabinla giris yap"
-              : `${email} adresine gonderilen 6 haneli kodu gir`}
+              : `${email} adresine gonderilen kodu gir`}
           </CardDescription>
         </div>
       </CardHeader>
@@ -140,13 +140,13 @@ export default function LoginPage() {
             className="space-y-4"
           >
             <div className="space-y-2">
-              <Label htmlFor="token">6 haneli kod</Label>
+              <Label htmlFor="token">Dogrulama kodu</Label>
               <Input
                 id="token"
                 inputMode="numeric"
                 autoComplete="one-time-code"
-                maxLength={6}
-                placeholder="123456"
+                maxLength={8}
+                placeholder="12345678"
                 {...otpForm.register("token")}
               />
               {otpForm.formState.errors.token && (
