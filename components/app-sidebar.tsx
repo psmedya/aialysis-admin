@@ -18,6 +18,7 @@ import {
   LogOut,
   Moon,
   Sun,
+  Database,
 } from "lucide-react";
 import {
   Sidebar,
@@ -39,6 +40,7 @@ type NavItem = { href: string; label: string; icon: React.ElementType };
 
 const mainNav: NavItem[] = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/veri-kapsam", label: "Veri Kapsam", icon: Database },
   { href: "/config", label: "Remote Config", icon: Settings2 },
   { href: "/users", label: "Kullanicilar", icon: Users },
   { href: "/matches", label: "Maclar", icon: CalendarClock },
